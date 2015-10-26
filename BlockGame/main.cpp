@@ -18,14 +18,23 @@
 // 2  225 180 135  1
 
 double bumper_x;
-double bumper_y = -0.7;
+double bumper_y1 = -0.7;
+double bumper_y2 = -0.8;
 
 double ball_x ;
 double ball_y = -0.6;
 
 double hantei = 0.96;
 
+double block1_x1 = -0.2;
+double block1_y1 = 0.5;
+double block1_x2 = 0.2;
+double block1_y2 = 0.7;
+
+bool block[1] = {true};
+
 int    angle = 0;
+int    remain = 1;//残機
 
 #define PART 100 // 分割数
 
@@ -38,10 +47,24 @@ void drawBumper( double x1, double y1, double x2, double y2 ){
     glEnd();
 }
 
+void drawBlock( double x1, double y1, double x2, double y2 ){
+    glBegin( GL_POLYGON );
+    glVertex2d( x1, y1 );
+    glVertex2d( x1, y2 );
+    glVertex2d( x2, y2 );
+    glVertex2d( x2, y1 );
+    glEnd();
+}
+
 void display(void){
     glClear(GL_COLOR_BUFFER_BIT);
-    glColor3d(1.0, 0.0, 0.0);
-    drawBumper(bumper_x + 0.2, bumper_y, bumper_x-0.2, bumper_y - 0.1);
+    glColor3d(1.0, 1.0, 0.0);
+    drawBumper(bumper_x + 0.2, bumper_y1, bumper_x-0.2, bumper_y2);
+
+    if(block[0]){
+        glColor3d(1.0, 0.0, 0.0);
+        drawBlock(block1_x1,block1_y1,block1_x2,block1_y2);
+    }
     
     glColor3f(1.0, 1.0, 1.0); // 描画物体に白色を設定
     glBegin(GL_POLYGON); // ポリゴンの描画
@@ -66,7 +89,6 @@ void init(void){
 }
 
 void passive(int x, int y){
-    printf("(%d, %d)\n",x,y);
     bumper_x = (x-249.5)/255.0;
 }
 
@@ -108,7 +130,7 @@ void gltTimer(int arg){
     //壁判定ここまで
     
     //バー判定ここから
-    if (ball_y <= bumper_y +0.04) {
+    if (ball_y <= bumper_y1 +0.04 && ball_y >= bumper_y2 - 0.04) {
         if (bumper_x - 0.2 < ball_x && bumper_x + 0.2 > ball_x){
             if (angle == 3) {
                 angle = 0;
@@ -118,6 +140,19 @@ void gltTimer(int arg){
         }
     }
     //バー判定ここまで
+    
+    //ブロック当たり判定ここから
+    if (ball_y >= block1_y1 - 0.06 && ball_y <= block1_y2 + 0.06 ) {
+        if (block1_x1 < ball_x && block1_x2 > ball_x) {
+            angle = 1;
+            remain--;
+            block[0] = false;
+        }
+    }
+    //ブロック当たり判定ここまで
+    if (remain == 0) {
+        printf("ゲームクリア！おめでとう！");
+    }
     
     glutPostRedisplay();
     glutTimerFunc(10, gltTimer, 0);
