@@ -26,17 +26,20 @@ double ball_y = -0.6;
 
 double hantei = 0.96;
 
-double block1_x1 = -0.2;
-double block1_y1 = 0.5;
-double block1_x2 = 0.2;
-double block1_y2 = 0.7;
 
-bool block[1] = {true};
 
 int    angle = 0;
-int    remain = 1;//残機
+int    remain = 2;//残数
+int    num = 2;//ブロック数
 
-#define PART 100 // 分割数
+double block_x1[2] = {-0.2,0.3};
+double block_y1[2] = {0.5 ,0.5};
+double block_x2[2] = {0.2 ,0.7};
+double block_y2[2] = {0.7 ,0.7};
+
+bool block[2];
+
+#define PART 100
 
 void drawBumper( double x1, double y1, double x2, double y2 ){
     glBegin( GL_POLYGON );
@@ -61,10 +64,13 @@ void display(void){
     glColor3d(1.0, 1.0, 0.0);
     drawBumper(bumper_x + 0.2, bumper_y1, bumper_x-0.2, bumper_y2);
 
-    if(block[0]){
-        glColor3d(1.0, 0.0, 0.0);
-        drawBlock(block1_x1,block1_y1,block1_x2,block1_y2);
+    for (int i = 0; i != num; i++) {
+        if(block[i]){
+            glColor3d(1.0, 0.0, 0.0);
+            drawBlock(block_x1[i],block_y1[i],block_x2[i],block_y2[i]);
+        }
     }
+    
     
     glColor3f(1.0, 1.0, 1.0); // 描画物体に白色を設定
     glBegin(GL_POLYGON); // ポリゴンの描画
@@ -86,6 +92,12 @@ void display(void){
 
 void init(void){
     glClearColor(0.109803922, 0.282352941, 0.9, 1.0);
+    
+    int i;
+    for (i = 0; i < num; i++ ) {
+        block[i] = true;
+    }
+    
 }
 
 void passive(int x, int y){
@@ -142,25 +154,33 @@ void gltTimer(int arg){
     //バー判定ここまで
     
     //ブロック当たり判定ここから
-    if (ball_y >= block1_y1 - 0.06 && ball_y <= block1_y2 + 0.06 ) {
-        if (block1_x1 < ball_x && block1_x2 > ball_x) {
-            angle = 1;
-            remain--;
-            block[0] = false;
+    for (int i = 0; i != num; i++) {
+        if (block[i]) {
+            if (ball_y >= block_y1[i] - 0.06 && ball_y <= block_y2[i] + 0.06 ) {
+                if (block_x1[i] < ball_x && block_x2[i] > ball_x) {
+                    angle = 1;
+                    remain--;
+                    block[i] = false;
+                }
+            }
         }
     }
+    
+    
     //ブロック当たり判定ここまで
     if (remain == 0) {
-        printf("ゲームクリア！おめでとう！");
+        printf("ゲームクリア！おめでとう！\n");
+        glutPostRedisplay();
+    }else{
+        glutPostRedisplay();
+        glutTimerFunc(10, gltTimer, 0);
     }
     
-    glutPostRedisplay();
-    glutTimerFunc(10, gltTimer, 0);
+    
 }
 
 int main(int argc, char *argv[]) {
     // insert code here...
-    printf("Hello World!\n");
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_RGBA);
     glutInitWindowSize( 500, 500 );
