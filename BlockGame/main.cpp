@@ -29,15 +29,15 @@ double hantei = 0.96;
 
 
 int    angle = 0;
-int    remain = 2;//残数
-int    num = 2;//ブロック数
+int    remain = 3;//残数
+int    num = 3;//ブロック数
 
-double block_x1[2] = {-0.2,0.3};
-double block_y1[2] = {0.5 ,0.5};
-double block_x2[2] = {0.2 ,0.7};
-double block_y2[2] = {0.7 ,0.7};
+double block_x1[3] = { -0.2 , 0.3 , -0.7};
+double block_y1[3] = {  0.5 , 0.5 ,  0.5};
+double block_x2[3] = {  0.2 , 0.7 , -0.3};
+double block_y2[3] = {  0.7 , 0.7 ,  0.7};
 
-bool block[2];
+bool block[3];
 
 #define PART 100
 
@@ -47,6 +47,14 @@ void drawBumper( double x1, double y1, double x2, double y2 ){
     glVertex2d( x1, y2 );
     glVertex2d( x2, y2 );
     glVertex2d( x2, y1 );
+    glEnd();
+}
+
+void drawLine( double x1, double y1, double x2, double y2 ){
+    glColor3d( 1.0, 0.0, 0.0);
+    glBegin( GL_LINE_LOOP );
+    glVertex2d( x1, y1 );
+    glVertex2d( x2, y2 );
     glEnd();
 }
 
@@ -63,14 +71,18 @@ void display(void){
     glClear(GL_COLOR_BUFFER_BIT);
     glColor3d(1.0, 1.0, 0.0);
     drawBumper(bumper_x + 0.2, bumper_y1, bumper_x-0.2, bumper_y2);
-
+    
+    drawLine(bumper_x + 0.2, bumper_y1, bumper_x - 0.2, bumper_y1);
+    drawLine(bumper_x + 0.2, bumper_y2, bumper_x - 0.2, bumper_y2);
+    drawLine(bumper_x + 0.2, bumper_y1, bumper_x + 0.2, bumper_y2);
+    drawLine(bumper_x - 0.2, bumper_y1, bumper_x - 0.2, bumper_y2);
+    
     for (int i = 0; i != num; i++) {
         if(block[i]){
             glColor3d(1.0, 0.0, 0.0);
             drawBlock(block_x1[i],block_y1[i],block_x2[i],block_y2[i]);
         }
     }
-    
     
     glColor3f(1.0, 1.0, 1.0); // 描画物体に白色を設定
     glBegin(GL_POLYGON); // ポリゴンの描画
@@ -142,13 +154,21 @@ void gltTimer(int arg){
     //壁判定ここまで
     
     //バー判定ここから
-    if (ball_y <= bumper_y1 +0.04 && ball_y >= bumper_y2 - 0.04) {
-        if (bumper_x - 0.2 < ball_x && bumper_x + 0.2 > ball_x){
-            if (angle == 3) {
-                angle = 0;
-            }else if (angle == 2) {
-                angle = 1;
-            }
+    if (ball_y <= bumper_y1 + 0.04 && ball_y >= bumper_y1 &&bumper_x - 0.2 < ball_x && bumper_x + 0.2 > ball_x) {
+        if (angle == 3) {
+            angle = 0;
+        }else if (angle == 2) {
+            angle = 1;
+        }
+    }
+    if (bumper_x - 0.2 - 0.04 <= ball_x && bumper_x - 0.2 >= ball_x &&bumper_y1 > ball_y && bumper_y2 < ball_y) {
+        if (angle == 3) {
+            angle = 2;
+        }
+    }
+    if (bumper_x + 0.2 + 0.04 >= ball_x && bumper_x + 0.2 <= ball_x &&bumper_y1 > ball_y && bumper_y2 < ball_y) {
+        if (angle == 2) {
+            angle = 3;
         }
     }
     //バー判定ここまで
@@ -168,6 +188,7 @@ void gltTimer(int arg){
     
     
     //ブロック当たり判定ここまで
+    remain = 1;
     if (remain == 0) {
         printf("ゲームクリア！おめでとう！\n");
         glutPostRedisplay();
